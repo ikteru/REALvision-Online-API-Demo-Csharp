@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.329
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RealvisionLib", "ClassLibrary1\RealvisionLib.csproj", "{A815A51F-9A0F-4844-AE93-5A1A8384D924}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "ConsoleApp1\Test.csproj", "{30B3E4BE-AE4F-46AF-9CB9-2B1AD5241BFF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A815A51F-9A0F-4844-AE93-5A1A8384D924}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A815A51F-9A0F-4844-AE93-5A1A8384D924}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A815A51F-9A0F-4844-AE93-5A1A8384D924}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A815A51F-9A0F-4844-AE93-5A1A8384D924}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30B3E4BE-AE4F-46AF-9CB9-2B1AD5241BFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30B3E4BE-AE4F-46AF-9CB9-2B1AD5241BFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30B3E4BE-AE4F-46AF-9CB9-2B1AD5241BFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30B3E4BE-AE4F-46AF-9CB9-2B1AD5241BFF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1F2C7A0C-D287-4FC5-8A3E-C52AAE74075B}
+	EndGlobalSection
+EndGlobal
