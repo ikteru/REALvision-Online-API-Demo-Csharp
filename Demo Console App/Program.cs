@@ -16,6 +16,17 @@ namespace
             realvisionInstance.ApiLink = "https://realvisiononline.azure-api.net";
 
 
+            // ********************************************************************************//
+            //  To call https://realvisiononline.azure-api.net/GetActivationStatus
+            // ********************************************************************************//
+
+            String activatoinStatus = realvisionInstance.getActivationStatus();
+
+            // ********************************************************************************//
+            //  To call https://realvisiononline.azure-api.net/ProvideFile
+            // ********************************************************************************//
+
+
             //Specify the name of the file you want to slice with it's extension.
             realvisionInstance.FileToSlice = "calicat.rvwj";
             //Specify where the file is stored
@@ -30,19 +41,28 @@ namespace
             realvisionInstance.DownloadsFolder = @"C:\Users\Intern 5\source\repos\REALvision Online DEMO\Demo Console App\Downloads\";
 
 
-            //To call https://realvisiononline.azure-api.net/GetActivationStatus
-            String activatoinStatus = realvisionInstance.getActivationStatus();
+            realvisionInstance.SupportType = "n";
+            realvisionInstance.PrinterModel = "IdeaWerk-Speed";
+            realvisionInstance.ConfigPresetName = "Recommended";
 
-            //To call https://realvisiononline.azure-api.net/ProvideFile
             String uniqueID = realvisionInstance.ProvideFile();
 
-            //To call https://realvisiononline.azure-api.net/GetProgress
+            // ********************************************************************************//
+            //  To call https://realvisiononline.azure-api.net/GetProgress
+            // ********************************************************************************//
+
             String progress = realvisionInstance.GetProgress(uniqueID);
 
-            //To call https://realvisiononline.azure-api.net/GetPrintingInformation
+            // ********************************************************************************//
+            //  To call https://realvisiononline.azure-api.net/GetPrintingInformation
+            // ********************************************************************************//
+
             String printingInfos = realvisionInstance.GetPrintingInformation(uniqueID);
 
-            //To call https://realvisiononline.azure-api.net/DownloadFile
+            // ********************************************************************************//
+            //  To call https://realvisiononline.azure-api.net/DownloadFile
+            // ********************************************************************************//
+
             //Note: DownloadFile will first check the progress of the slicing process before downloading the file
             //      which is why you'll notice in the Console that GetProgress is executed a few times before DownloadFile is executed
             realvisionInstance.Downloadfile(uniqueID);

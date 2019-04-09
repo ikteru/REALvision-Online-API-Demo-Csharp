@@ -14,8 +14,14 @@ namespace
 
         public String ApiKey { get; set; }
         public String ApiLink { get; set; }
+        
+        //The Slicing Configs
         public String FileToSlice { get; set; }     //Filename with extension
         public String FileFolder { get; set; }      //The folder where the file is stored, if this class isn't given a filefolder it will automatically use the Assets folder which should be supplied
+        public String SupportType { get; set; }
+        public String PrinterModel { get; set; }
+        public String ConfigPresetName { get; set; }
+
         public String DownloadsFolder { get; set; } //The folder where the downloaded files will be stored 
         public String AssetsFolder { get; set; }    //The folder where the files to slice are stored.
 
@@ -36,7 +42,7 @@ namespace
         public String ProvideFile()
         {
             
-            FormData formData = new FormData("n","IdeaWerk-Speed","Recommended" );
+            FormData formData = new FormData(this.SupportType,this.PrinterModel,this.ConfigPresetName );
 
             return makeRequest("POST", "ProvideFile", formData);
         }
