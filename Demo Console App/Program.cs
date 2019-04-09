@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using REALvisionApiLib;
 
 namespace 
@@ -33,12 +34,12 @@ namespace
             //If it's stored in the Assets folder, use the Assets folder property
             //If not use the FileFolder property and specify the link to the file folder
 
-            realvisionInstance.AssetsFolder = @"C:\Users\Intern 5\source\repos\REALvision Online DEMO\Demo Console App\Assets\";
-            //realvisionInstance.FileFolder = @"C:\Users\Intern 5\source\repos\ClassLibrary1\ConsoleApp1\Assets\";
+            realvisionInstance.AssetsFolder = Directory.GetCurrentDirectory() + @"\Assets\";
+            //realvisionInstance.FileFolder = Directory.GetCurrentDirectory() + @"\Assets\";
 
             //Specify where you want the downloaded FCode file to be stored.
             //If you don't specify it, the downloaded file will be stored in the same folder as the file you provided to slice
-            realvisionInstance.DownloadsFolder = @"C:\Users\Intern 5\source\repos\REALvision Online DEMO\Demo Console App\Downloads\";
+            realvisionInstance.DownloadsFolder = Directory.GetCurrentDirectory() + @"\Downloads\";
 
 
             realvisionInstance.SupportType = "n";

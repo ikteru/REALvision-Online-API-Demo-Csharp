@@ -95,7 +95,12 @@ namespace
 
             if ( serviceCall == "DownloadFile")
             {
-                Console.WriteLine("RESPONSE :" + " Please check the following folder: " + this.saveFileTo + " for the downloaded FCode file.");
+                Console.WriteLine("--------------------");
+                Console.WriteLine("RESPONSE :" + " Please check the following folder: ");
+                Console.WriteLine(this.saveFileTo);
+                Console.WriteLine(" for the downloaded FCode file.");
+                Console.WriteLine("--------------------");
+
             }
             else
             {
@@ -114,7 +119,6 @@ namespace
             String fileFolderLink = (string.IsNullOrEmpty(this.DownloadsFolder) ? (string.IsNullOrEmpty(this.AssetsFolder) ? this.FileFolder : this.AssetsFolder) : this.DownloadsFolder);
             this.saveFileTo = fileFolderLink + fileName + "." + timeStamp + ".fcode" ;
 
-            Console.WriteLine(" FILE LINK ::: " + this.saveFileTo);
             try
             {
                 File.WriteAllText(this.saveFileTo, response);
@@ -144,9 +148,9 @@ namespace
             String uniqueID = formData.UniqueID;
 
 
-            if (fileExtension != ".rvwj")
+            if (serviceCall == "ProvideFile" && fileExtension != ".rvwj")
             {
-                Console.WriteLine(" ---------------- Wrong File Extension --------------- ");
+                throw new Exception("  ------------- THE FILE YOU PROVIDED HAS THE WRONG EXTENSION  ------------- ");
             }
 
             string boundaryString = String.Format("----------{0:N}", Guid.NewGuid());
