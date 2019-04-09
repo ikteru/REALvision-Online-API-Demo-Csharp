@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace RealvisionLib
+namespace REALvisionApiLib
 {
     // ************************************************************************************* //
     //  This is the Object we pass to every API call using the Initialize Request function.

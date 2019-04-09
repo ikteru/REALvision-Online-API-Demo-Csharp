@@ -1,12 +1,15 @@
 ﻿using System;
+using REALvisionApiLib;
 
-namespace ConsoleApp1
+namespace 
+    DemoConsoleApp
 {
     class Program
     {
         static void Main(string[] args)
         {
-            Realvision.RealvisionApi realvisionInstance = new Realvision.RealvisionApi();
+            //Don't forget to add the REALvisionApiLib to this App's reference if you're using Visual Studio 
+            REALvisionApiLib.RealvisionApi realvisionInstance = new REALvisionApiLib.RealvisionApi();
 
             //Specify the API link and the SUBSCRIPTION_KEY
             realvisionInstance.ApiKey = "46a51b685f1e4fbca8cfc98397fdcb8c";
@@ -19,12 +22,12 @@ namespace ConsoleApp1
             //If it's stored in the Assets folder, use the Assets folder property
             //If not use the FileFolder property and specify the link to the file folder
 
-            realvisionInstance.AssetsFolder = @"C:\Users\Intern 5\source\repos\ClassLibrary1\ConsoleApp1\Assets\";
+            realvisionInstance.AssetsFolder = @"C:\Users\Intern 5\source\repos\REALvision Online DEMO\Demo Console App\Assets\";
             //realvisionInstance.FileFolder = @"C:\Users\Intern 5\source\repos\ClassLibrary1\ConsoleApp1\Assets\";
 
             //Specify where you want the downloaded FCode file to be stored.
             //If you don't specify it, the downloaded file will be stored in the same folder as the file you provided to slice
-            realvisionInstance.DownloadsFolder = @"C:\Users\Intern 5\source\repos\ClassLibrary1\ConsoleApp1\Downloads\";
+            realvisionInstance.DownloadsFolder = @"C:\Users\Intern 5\source\repos\REALvision Online DEMO\Demo Console App\Downloads\";
 
 
             //To call https://realvisiononline.azure-api.net/GetActivationStatus

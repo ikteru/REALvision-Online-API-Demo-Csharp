@@ -1,17 +1,11 @@
-﻿using RealvisionLib;
-using RestSharp;
+﻿using REALvisionApiLib;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
 
-namespace 
-    Realvision
+namespace
+    REALvisionApiLib
 {
     public class RealvisionApi
     {
@@ -112,7 +106,7 @@ namespace
             long utc = ((DateTimeOffset)foo).ToUnixTimeSeconds();
             String timeStamp = utc.ToString();
             String fileFolderLink = (string.IsNullOrEmpty(this.DownloadsFolder) ? (string.IsNullOrEmpty(this.AssetsFolder) ? this.FileFolder : this.AssetsFolder) : this.DownloadsFolder);
-            this.saveFileTo = fileFolderLink + fileName + "." + timeStamp + fileExtention;
+            this.saveFileTo = fileFolderLink + fileName + "." + timeStamp + ".fcode" ;
 
             Console.WriteLine(" FILE LINK ::: " + this.saveFileTo);
             try
