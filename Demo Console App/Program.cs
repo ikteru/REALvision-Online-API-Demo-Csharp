@@ -9,7 +9,9 @@ namespace
     {
         static void Main(string[] args)
         {
-            //Don't forget to add the REALvisionApiLib to this App's reference if you're using Visual Studio 
+            String currentFolder = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\")); //The folder in which Program.cs exists
+
+            //Don't forget to add the REALvisionApiLib to this App's reference
             REALvisionApiLib.RealvisionApi realvisionInstance = new REALvisionApiLib.RealvisionApi();
 
             //Specify the API link and the SUBSCRIPTION_KEY
@@ -34,12 +36,12 @@ namespace
             //If it's stored in the Assets folder, use the Assets folder property
             //If not use the FileFolder property and specify the link to the file folder
 
-            realvisionInstance.AssetsFolder = Directory.GetCurrentDirectory() + @"\Assets\";
-            //realvisionInstance.FileFolder = Directory.GetCurrentDirectory() + @"\Assets\";
+            realvisionInstance.AssetsFolder = currentFolder + @"\Assets\";
+            //realvisionInstance.FileFolder = currentFolder + @"\Assets\";
 
             //Specify where you want the downloaded FCode file to be stored.
             //If you don't specify it, the downloaded file will be stored in the same folder as the file you provided to slice
-            realvisionInstance.DownloadsFolder = Directory.GetCurrentDirectory() + @"\Downloads\";
+            realvisionInstance.DownloadsFolder = currentFolder + @"\Downloads\";
 
 
             realvisionInstance.SupportType = "n";
