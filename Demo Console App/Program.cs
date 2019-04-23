@@ -14,15 +14,9 @@ namespace
             //Don't forget to add the REALvisionApiLib to this App's reference
             REALvisionApiLib.RealvisionApi realvisionInstance = new REALvisionApiLib.RealvisionApi();
 
-            //Get and set access token 
-            var authLink = "https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token";
-            realvisionInstance.AuthLink = authLink;
-
-            realvisionInstance.getToken(currentFolder);
-
-            ////Specify the API link and the SUBSCRIPTION_KEY
-            realvisionInstance.ApiKey = "cddc9d03c546487f84e8adac2cedfbe5";
-            realvisionInstance.ApiLink = "https://test-getway.azure-api.net/realvision";
+            //Specify the API link and the SUBSCRIPTION_KEY
+            realvisionInstance.ApiKey = "46a51b685f1e4fbca8cfc98397fdcb8c";
+            realvisionInstance.ApiLink = "https://realvisiononline.azure-api.net";
 
 
             // ********************************************************************************//
@@ -31,9 +25,9 @@ namespace
 
             String activatoinStatus = realvisionInstance.getActivationStatus();
 
-            //// ********************************************************************************//
-            ////  To call https://realvisiononline.azure-api.net/ProvideFile
-            //// ********************************************************************************//
+            // ********************************************************************************//
+            //  To call https://realvisiononline.azure-api.net/ProvideFile
+            // ********************************************************************************//
 
 
             //Specify the name of the file you want to slice with it's extension.

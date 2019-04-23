@@ -1,6 +1,4 @@
-﻿using Newtonsoft.Json.Linq;
-using REALvisionApiLib;
-using RestSharp;
+﻿using REALvisionApiLib;
 using System;
 using System.IO;
 using System.Net;
@@ -16,9 +14,7 @@ namespace
 
         public String ApiKey { get; set; }
         public String ApiLink { get; set; }
-        public String AuthLink { get; set; }
-        public String Token { get; set; }
-        public String ExpiresOn { get; set; }
+        
         //The Slicing Configs
         public String FileToSlice { get; set; }     //Filename with extension
         public String FileFolder { get; set; }      //The folder where the file is stored, if this class isn't given a filefolder it will automatically use the Assets folder which should be supplied
@@ -75,50 +71,6 @@ namespace
 
         // ************************************************************************************* //
         // ************************************************************************************* //
-        public String getToken(String currentFolder)
-        {
-            String tokenFile = File.ReadAllText(currentFolder + "/token.json");
-            JObject json = JObject.Parse(tokenFile);
-            this.ExpiresOn = json["expires_on"].ToString();
-            Double expirationDate = Double.Parse(this.ExpiresOn);
-            DateTime foo = DateTime.UtcNow;
-            long unixTime = ((DateTimeOffset)foo).ToUnixTimeSeconds();
-            bool newTokenNeeded = !( expirationDate - unixTime > 0 );
-
-            Console.WriteLine();
-            Console.WriteLine("*************************************************************************");
-            Console.WriteLine("NEW TOKEN NEEDED ?   ::::::: " + newTokenNeeded);
-
-            if ( newTokenNeeded )
-            {
-                var client = new RestClient(this.AuthLink);
-                var request = new RestRequest(Method.POST);
-                request.AddHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW");
-                request.AddParameter("multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"grant_type\"\r\n\r\nclient_credentials\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"client_id\"\r\n\r\nc2962643-a534-4d84-a298-6fb709af1bf4\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"client_secret\"\r\n\r\nlH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"resource\"\r\n\r\nhttps://api.createitreal.com/\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--", ParameterType.RequestBody);
-                IRestResponse response = client.Execute(request);
-                json = JObject.Parse(response.Content);
-                File.WriteAllText(currentFolder + "/token.json", json.ToString());
-
-                return "NEW TOKEN NOT NEEDED";
-
-            }
-
-            this.Token = json["access_token"].ToString();
-            Console.WriteLine("*************************************************************************");
-            Console.WriteLine("TOKEN    :::::: " + this.Token);
-            Console.WriteLine("*************************************************************************");
-
-            this.ExpiresOn = json["expires_on"].ToString();
-            expirationDate = Double.Parse(this.ExpiresOn);
-            Console.WriteLine("EXPIRATION   ::::: " + this.ExpiresOn);
-
-            Console.WriteLine("CURRENT TIME ::::: " + unixTime);
-            Console.WriteLine("*************************************************************************");
-            Console.WriteLine();
-
-            return "GOT NEW TOKEN";
-
-        }
 
         private String getResult(HttpWebResponse response)
         {
@@ -216,8 +168,8 @@ namespace
             requestToServerEndpoint.Method = WebRequestMethods.Http.Post;
             requestToServerEndpoint.ContentType = contentType;
             requestToServerEndpoint.KeepAlive = true;
+            requestToServerEndpoint.Credentials = CredentialCache.DefaultCredentials;
             requestToServerEndpoint.Headers["Ocp-Apim-Subscription-Key"] = this.ApiKey;
-            requestToServerEndpoint.Headers["Authorization"] = "Bearer " + this.Token;
 
             //******************************************************************************************//
             //****************************** HTTP REQUEST HEADERS - END ********************************//
