@@ -44,7 +44,6 @@ namespace
 
             realvisionInstance.AssetsFolder = currentFolder + @"\Assets\";
             //realvisionInstance.FileFolder = currentFolder + @"\Assets\";
-
             //Specify where you want the downloaded FCode file to be stored.
             //If you don't specify it, the downloaded file will be stored in the same folder as the file you provided to slice
             realvisionInstance.DownloadsFolder = currentFolder + @"\Downloads\";

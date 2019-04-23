@@ -17,6 +17,8 @@ namespace
         public String ApiKey { get; set; }
         public String ApiLink { get; set; }
         public String AuthLink { get; set; }
+        public String ClientId { get; set; }
+        public String ClientSecret { get; set; }
         public String Token { get; set; }
         public String ExpiresOn { get; set; }
         //The Slicing Configs
@@ -75,49 +77,84 @@ namespace
 
         // ************************************************************************************* //
         // ************************************************************************************* //
-        public String getToken(String currentFolder)
+        public IRestResponse requestNewToken()
+        {
+            //var client = new RestClient(this.AuthLink);
+            //var request = new RestRequest(Method.POST);
+
+            //string boundaryString = String.Format("----------{0:N}", Guid.NewGuid());
+            //string contentType = "multipart/form-data; boundary=" + boundaryString;
+
+            //request.AddHeader("content-type", boundaryString);
+            //request.AddParameter(contentType,
+            //    boundaryString + "\r\nContent-Disposition: form-data; name=\"" + "grant_type" + "\"\r\n\r\n" + "client_credentials" + "\r\n" +
+            //    boundaryString + "\r\nContent-Disposition: form-data; name=\"" + "client_id" + "\"\r\n\r\n" + this.ClientId + "\r\n" +
+            //    boundaryString + "\r\nContent-Disposition: form-data; name=\"" + "client_secret" + "\"\r\n\r\n" + this.ClientSecret + "\r\n" +
+            //    boundaryString + "\r\nContent-Disposition: form-data; name=\"" + "resource" + "\"\r\n\r\n" + "https://api.createitreal.com/" + "\r\n" +
+            //    boundaryString, ParameterType.RequestBody);
+            //IRestResponse response = client.Execute(request);
+
+            var client = new RestClient("https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token");
+            var request = new RestRequest(Method.POST);
+            request.AddHeader("Postman-Token", "618ba81c-0dea-4346-8457-ca9d262709d2");
+            request.AddHeader("cache-control", "no-cache");
+            request.AddHeader("Content-Type", "application/json");
+            request.AddHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW");
+            request.AddParameter("multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"grant_type\"\r\n\r\nclient_credentials\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"client_id\"\r\n\r\nc2962643-a534-4d84-a298-6fb709af1bf4\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"client_secret\"\r\n\r\nlH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"resource\"\r\n\r\nhttps://api.createitreal.com/\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--", ParameterType.RequestBody);
+            IRestResponse response = client.Execute(request);
+
+            return response;
+        }
+
+        public void getToken(String currentFolder)
         {
             String tokenFile = File.ReadAllText(currentFolder + "/token.json");
             JObject json = JObject.Parse(tokenFile);
-            this.ExpiresOn = json["expires_on"].ToString();
-            Double expirationDate = Double.Parse(this.ExpiresOn);
-            DateTime foo = DateTime.UtcNow;
-            long unixTime = ((DateTimeOffset)foo).ToUnixTimeSeconds();
-            bool newTokenNeeded = !( expirationDate - unixTime > 0 );
 
-            Console.WriteLine();
-            Console.WriteLine("*************************************************************************");
-            Console.WriteLine("NEW TOKEN NEEDED ?   ::::::: " + newTokenNeeded);
-
-            if ( newTokenNeeded )
+            if (json.TryGetValue("access_token", out JToken access_token))
             {
-                var client = new RestClient(this.AuthLink);
-                var request = new RestRequest(Method.POST);
-                request.AddHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW");
-                request.AddParameter("multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"grant_type\"\r\n\r\nclient_credentials\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"client_id\"\r\n\r\nc2962643-a534-4d84-a298-6fb709af1bf4\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"client_secret\"\r\n\r\nlH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"resource\"\r\n\r\nhttps://api.createitreal.com/\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--", ParameterType.RequestBody);
-                IRestResponse response = client.Execute(request);
-                json = JObject.Parse(response.Content);
+                Console.WriteLine("*************************************************************************");
+                Console.WriteLine("Valid token file.");
+
+                this.ExpiresOn = json["expires_on"].ToString();
+                Double expirationDate = Double.Parse(this.ExpiresOn);
+                DateTime foo = DateTime.UtcNow;
+                long unixTime = ((DateTimeOffset)foo).ToUnixTimeSeconds();
+                bool newTokenNeeded = !(expirationDate - unixTime > 0);
+
+                Console.WriteLine();
+                Console.WriteLine("*************************************************************************");
+                Console.WriteLine("NEW TOKEN NEEDED ?   ::::::: " + newTokenNeeded);
+
+                if (!newTokenNeeded)
+                {
+                    this.Token = json["access_token"].ToString();
+                    Console.WriteLine("*************************************************************************");
+                    Console.WriteLine("TOKEN    :::::: " + this.Token);
+                    Console.WriteLine("*************************************************************************");
+
+                    this.ExpiresOn = json["expires_on"].ToString();
+                    expirationDate = Double.Parse(this.ExpiresOn);
+                    Console.WriteLine("EXPIRATION   ::::: " + this.ExpiresOn);
+
+                    Console.WriteLine("CURRENT TIME ::::: " + unixTime);
+                    Console.WriteLine("*************************************************************************");
+                    Console.WriteLine();
+                } else
+                {    
+                    json = JObject.Parse(requestNewToken().Content);
+                    File.WriteAllText(currentFolder + "/token.json", json.ToString());
+                }
+            } else
+            {
+                Console.WriteLine("RESPONSE ::: " + requestNewToken().Content);
+                json = JObject.Parse(requestNewToken().Content);
                 File.WriteAllText(currentFolder + "/token.json", json.ToString());
-
-                return "NEW TOKEN NOT NEEDED";
-
+                
             }
 
-            this.Token = json["access_token"].ToString();
-            Console.WriteLine("*************************************************************************");
-            Console.WriteLine("TOKEN    :::::: " + this.Token);
-            Console.WriteLine("*************************************************************************");
 
-            this.ExpiresOn = json["expires_on"].ToString();
-            expirationDate = Double.Parse(this.ExpiresOn);
-            Console.WriteLine("EXPIRATION   ::::: " + this.ExpiresOn);
-
-            Console.WriteLine("CURRENT TIME ::::: " + unixTime);
-            Console.WriteLine("*************************************************************************");
-            Console.WriteLine();
-
-            return "GOT NEW TOKEN";
-
+             
         }
 
         private String getResult(HttpWebResponse response)
