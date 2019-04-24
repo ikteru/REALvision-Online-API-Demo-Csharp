@@ -14,15 +14,19 @@ namespace
             //Don't forget to add the REALvisionApiLib to this App's reference
             REALvisionApiLib.RealvisionApi realvisionInstance = new REALvisionApiLib.RealvisionApi();
 
-            //Get and set access token 
-            var authLink = "https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token";
-            realvisionInstance.AuthLink = authLink;
+            //Set the authentication server URL
+            realvisionInstance.AuthServerUrl = "https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token";
 
-            realvisionInstance.getToken(currentFolder);
+            //Get and set access token 
+            realvisionInstance.CurrentFolder = currentFolder;
+            //realvisionInstance.getToken();
 
             ////Specify the API link and the SUBSCRIPTION_KEY
-            realvisionInstance.ApiKey = "cddc9d03c546487f84e8adac2cedfbe5";
-            realvisionInstance.ApiLink = "https://test-getway.azure-api.net/realvision";
+            realvisionInstance.ApiKey = "0055df69240944e5a2edf6470344fee2";
+            realvisionInstance.ClientId = "c2962643-a534-4d84-a298-6fb709af1bf4";
+            realvisionInstance.ClientSecret = "lH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=";
+            realvisionInstance.ApiUrl = "https://realvisiononline.azure-api.net";
+            //realvisionInstance.ApiUrl = "https://test-getway.azure-api.net/realvision";
 
 
             // ********************************************************************************//
