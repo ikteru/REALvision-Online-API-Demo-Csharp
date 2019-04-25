@@ -9,22 +9,23 @@ namespace
     {
         static void Main(string[] args)
         {
-            String currentFolder = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\")); //The folder in which Program.cs exists
-
             //Don't forget to add the REALvisionApiLib to this App's reference
             REALvisionApiLib.RealvisionApi realvisionInstance = new REALvisionApiLib.RealvisionApi();
+
+            String currentFolder = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\..\..\")); //The folder in which Program.cs exists
+            realvisionInstance.CurrentFolder = currentFolder;
 
             //Set the authentication server URL
             realvisionInstance.AuthServerUrl = "https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token";
 
-            //Get and set access token 
-            realvisionInstance.CurrentFolder = currentFolder;
-            //realvisionInstance.getToken();
-
-            ////Specify the API link and the SUBSCRIPTION_KEY
-            realvisionInstance.ApiKey = "0055df69240944e5a2edf6470344fee2";
+            ////Specify your Credentials : Subscription Key, client id and client secret .
+            realvisionInstance.ApiKey = "cddc9d03c546487f84e8adac2cedfbe5";
             realvisionInstance.ClientId = "c2962643-a534-4d84-a298-6fb709af1bf4";
             realvisionInstance.ClientSecret = "lH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=";
+
+            //Get and set access token 
+            realvisionInstance.getToken();
+
             realvisionInstance.ApiUrl = "https://realvisiononline.azure-api.net";
             //realvisionInstance.ApiUrl = "https://test-getway.azure-api.net/realvision";
 
@@ -42,17 +43,20 @@ namespace
 
             //Specify the name of the file you want to slice with it's extension.
             realvisionInstance.FileToSlice = "calicat.rvwj";
+
             //Specify where the file is stored
             //If it's stored in the Assets folder, use the Assets folder property
             //If not use the FileFolder property and specify the link to the file folder
 
             realvisionInstance.AssetsFolder = currentFolder + @"\Assets\";
             //realvisionInstance.FileFolder = currentFolder + @"\Assets\";
+
             //Specify where you want the downloaded FCode file to be stored.
             //If you don't specify it, the downloaded file will be stored in the same folder as the file you provided to slice
+
             realvisionInstance.DownloadsFolder = currentFolder + @"\Downloads\";
 
-
+            //Specify the slicing configs
             realvisionInstance.SupportType = "n";
             realvisionInstance.PrinterModel = "IdeaWerk-Speed";
             realvisionInstance.ConfigPresetName = "Recommended";

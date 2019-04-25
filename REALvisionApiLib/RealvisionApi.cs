@@ -95,23 +95,36 @@ namespace
         public IRestResponse requestNewToken()
         {
 
-            string boundaryString = String.Format("----------{0:N}", Guid.NewGuid());
-            string contentType = "multipart/form-data; boundary=" + boundaryString;
-
             var client = new RestClient("https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token");
             var request = new RestRequest(Method.POST);
-            request.AddHeader("Content-Type", "application/json");
-            request.AddHeader("content-type", boundaryString);
-
-            request.AddParameter(contentType, 
-                boundaryString + "\r\nContent-Disposition: form-data; name=\"" +    "grant_type"       + "\"\r\n\r\n" + "client_credentials"            + "\r\n" +
-                boundaryString + "\r\nContent-Disposition: form-data; name=\"" +    "client_id"        + "\"\r\n\r\n" + this.ClientId + "\r\n"          +
-                boundaryString + "\r\nContent-Disposition: form-data; name=\"" +    "client_secret"    + "\"\r\n\r\n" + this.ClientSecret + "\r\n"      +
-                boundaryString + "\r\nContent-Disposition: form-data; name=\"" +    "resource"         + "\"\r\n\r\n" + "https://api.createitreal.com/" + "\r\n" +
-                boundaryString , ParameterType.RequestBody);
+            request.AddHeader("Postman-Token", "b45b53d9-0b63-480f-a0b6-46440ed4521b");
+            request.AddHeader("cache-control", "no-cache");
+            request.AddHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW");
+            request.AddParameter("multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", 
+                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
+                $"Content-Disposition: form-data; name=\"grant_type\"\r\n\r\nclient_credentials\r\n" +
+                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
+                $"Content-Disposition: form-data; name=\"client_id\"\r\n\r\n{this.ClientId}\r\n" +
+                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
+                $"Content-Disposition: form-data; name=\"client_secret\"\r\n\r\n{this.ClientSecret}\r\n" +
+                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
+                $"Content-Disposition: form-data; name=\"resource\"\r\n\r\nhttps://api.createitreal.com/\r\n" +
+                $"------WebKitFormBoundary7MA4YWxkTrZu0gW--", ParameterType.RequestBody);
             IRestResponse response = client.Execute(request);
+            Console.WriteLine("*************************************************************************");
+            JObject json = JObject.Parse(response.Content);
+
+            if (json.TryGetValue("access_token", out JToken access_token)) {
+                Console.WriteLine("Token successfully saved ... ");
+                Console.WriteLine("*************************************************************************");
+
+                
+            } else {
+                throw new Exception("Error while fetching token... ");
+            }
 
             return response;
+
         }
 
         public String getToken()
@@ -123,18 +136,24 @@ namespace
             {
                 tokenFile = File.ReadAllText(this.CurrentFolder + "/token.json");
                 json = JObject.Parse(tokenFile);
+
+                Console.WriteLine("*************************************************************************");
+                Console.WriteLine("Valid token file.");
+                Console.WriteLine("*************************************************************************");
             }
             catch
             {
+                Console.WriteLine("*************************************************************************");
+                Console.WriteLine("No token file found. requesting new token ...");
+                Console.WriteLine("*************************************************************************");
+
                 json = JObject.Parse(requestNewToken().Content);
                 File.WriteAllText(this.CurrentFolder + "/token.json", json.ToString());
             }
 
             if (json.TryGetValue("access_token", out JToken access_token))
             {
-                Console.WriteLine("*************************************************************************");
-                Console.WriteLine("Valid token file.");
-                Console.WriteLine("*************************************************************************");
+
 
                 this.TokenExpiresOn = json["expires_on"].ToString();
                 DateTime foo = DateTime.UtcNow;
@@ -142,20 +161,22 @@ namespace
 
                 bool newTokenNeeded = !(Double.Parse(this.TokenExpiresOn) - unixTime > 0);
 
-                Console.WriteLine();
-                Console.WriteLine("*************************************************************************");
-                Console.WriteLine("NEW TOKEN NEEDED ?   ::::::: " + newTokenNeeded);
-                Console.WriteLine("*************************************************************************");
-
                 if (!newTokenNeeded)
                 {
-                    this.Token = json["access_token"].ToString();
+                    Console.WriteLine("*************************************************************************");
+                    Console.WriteLine("Valid token file.");
+                    Console.WriteLine("*************************************************************************");
 
+                    this.Token = json["access_token"].ToString();
                     this.TokenExpiresOn = json["expires_on"].ToString();
 
                     return this.Token;
                 } else
-                {    
+                {
+                    Console.WriteLine("*************************************************************************");
+                    Console.WriteLine("Available token no longer valid, requesting new token ... ");
+                    Console.WriteLine("*************************************************************************");
+
                     json = JObject.Parse(requestNewToken().Content);
                     File.WriteAllText(this.CurrentFolder + "/token.json", json.ToString());
                     this.Token = json["access_token"].ToString();
@@ -164,9 +185,15 @@ namespace
                 }
             } else
             {
-                json = JObject.Parse(requestNewToken().Content);
-                File.WriteAllText(this.CurrentFolder + "/token.json", json.ToString());
-                return json["access_token"].ToString();
+                Console.WriteLine("*************************************************************************");
+                Console.WriteLine("Token file doesn't contain token, requesting new token ... ");
+                Console.WriteLine("*************************************************************************");
+
+                String newToken = requestNewToken().Content;
+                json = JObject.Parse(newToken);
+                File.WriteAllText(this.CurrentFolder + "/token.json", newToken);
+                Console.WriteLine("TOKEN    ::::: " + json.ToString());
+                return json.ToString();
             }
 
 
