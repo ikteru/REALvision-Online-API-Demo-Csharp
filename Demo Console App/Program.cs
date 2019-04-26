@@ -15,7 +15,7 @@ namespace
             REALvisionApiLib.RealvisionApi realvisionInstance = new REALvisionApiLib.RealvisionApi();
 
             //Specify the API link and the SUBSCRIPTION_KEY
-            realvisionInstance.ApiKey = "46a51b685f1e4fbca8cfc98397fdcb8c";
+            realvisionInstance.ApiKey = "0055df69240944e5a2edf6470344fee2";
             realvisionInstance.ApiLink = "https://realvisiononline.azure-api.net";
 
 
@@ -31,6 +31,7 @@ namespace
 
 
             //Specify the name of the file you want to slice with it's extension.
+            //IMPORTANT: The extension should be ".rvwj", if it's not, you'll get 500 error code from the server.
             realvisionInstance.FileToSlice = "calicat.rvwj";
             //Specify where the file is stored
             //If it's stored in the Assets folder, use the Assets folder property
