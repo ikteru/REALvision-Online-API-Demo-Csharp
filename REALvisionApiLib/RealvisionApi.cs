@@ -95,7 +95,7 @@ namespace
         public IRestResponse requestNewToken()
         {
 
-            var client = new RestClient("https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token");
+            var client = new RestClient(this.AuthServerUrl);
             var request = new RestRequest(Method.POST);
             request.AddHeader("Postman-Token", "b45b53d9-0b63-480f-a0b6-46440ed4521b");
             request.AddHeader("cache-control", "no-cache");

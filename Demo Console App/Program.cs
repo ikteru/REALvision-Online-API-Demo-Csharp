@@ -22,7 +22,7 @@ namespace
             //realvisionInstance.ClientSecret = "lH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=";
 
             //Set the authentication server URL and the API Url
-            //realvisionInstance.AuthServerUrl = "https://login.microsoftonline.com/186eb8de-01f4-4c87-9d83-4946009f1791/oauth2/token";
+            //realvisionInstance.AuthServerUrl = "https://realvisiononline.azure-api.net/oauth2/token";
             realvisionInstance.ApiUrl = "https://realvisiononline.azure-api.net";
             //realvisionInstance.ApiUrl = "https://test-getway.azure-api.net/realvision";
 
