@@ -18,16 +18,16 @@ namespace
             ////Specify your Credentials : Subscription Key, client id and client secret .
             realvisionInstance.ApiKey = "0055df69240944e5a2edf6470344fee2";
             //realvisionInstance.ApiKey = "cddc9d03c546487f84e8adac2cedfbe5";
-            //realvisionInstance.ClientId = "c2962643-a534-4d84-a298-6fb709af1bf4";
-            //realvisionInstance.ClientSecret = "lH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=";
+            realvisionInstance.ClientId = "c2962643-a534-4d84-a298-6fb709af1bf4";
+            realvisionInstance.ClientSecret = "lH642TrZAWMRUXZnkJb8BtuAmZ6c6ds4my/DPCN2/hg=";
 
             //Set the authentication server URL and the API Url
-            //realvisionInstance.AuthServerUrl = "https://realvisiononline.azure-api.net/oauth2/token";
+            realvisionInstance.AuthServerUrl = "https://realvisiononline.azure-api.net/oauth2/token";
             realvisionInstance.ApiUrl = "https://realvisiononline.azure-api.net";
             //realvisionInstance.ApiUrl = "https://test-getway.azure-api.net/realvision";
 
             //Get and set access token 
-            //realvisionInstance.getToken();
+            realvisionInstance.getToken();
 
             // ********************************************************************************//
             //  To call https://realvisiononline.azure-api.net/GetActivationStatus
