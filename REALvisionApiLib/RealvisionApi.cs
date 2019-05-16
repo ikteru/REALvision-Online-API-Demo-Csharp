@@ -1,9 +1,14 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using REALvisionApiLib.Models;
 using RestSharp;
 using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace
     REALvisionApiLib
@@ -12,15 +17,12 @@ namespace
     {
 
         public static HttpClient RealvisionClient { get; set; }
+        public String CurrentFolder { get; set; }
 
-        public String ApiKey { get; set; }
-        public String ApiUrl { get; set; }
-        public String AuthServerUrl { get; set; }
-        public String ClientId { get; set; }
-        public String ClientSecret { get; set; }
+        public ApiSettings ApiSettings { get; set; } 
         public String Token { get; set; }
         public String TokenExpiresOn { get; set; }
-        public String CurrentFolder { get; set; }
+
         //The Slicing Configs
         public String FileToSlice { get; set; }     //Filename with extension
         public String FileFolder { get; set; }      //The folder where the file is stored, if this class isn't given a filefolder it will automatically use the Assets folder which should be supplied
@@ -33,54 +35,61 @@ namespace
 
         private String saveFileTo { get; set; }
 
+        public RealvisionApi(String currentFolder)
+        {
+            this.CurrentFolder = currentFolder;
+            this.ApiSettings = this.getApiSettings(currentFolder);
+            this.getToken(currentFolder).Wait();
+        }
 
         // ************************************************************************************* //
         // ******************************** API FUNCTIONS ************************************** //
         // ************************************************************************************* //
 
-
         public String getActivationStatus()
         {
-            FormData formData = new FormData();
-            return makeRequest("POST", "GetActivationStatus", formData);
+            ApiRequest ApiRequest = new ApiRequest();
+            return MakeRequest("POST", "GetActivationStatus", ApiRequest).Result;
         }
         public String ProvideFile()
         {
-            
-            FormData formData = new FormData(this.SupportType,this.PrinterModel,this.ConfigPresetName );
-            String uniqueID = makeRequest("POST", "ProvideFile", formData);
-            return uniqueID;
+            String fileUrl = (string.IsNullOrEmpty(this.FileFolder) ? this.AssetsFolder : this.FileFolder) + this.FileToSlice;
+            string jsonString = File.ReadAllText(fileUrl, Encoding.UTF8);
+            WsConfigs wsConfigs = JsonConvert.DeserializeObject<WsConfigs>(jsonString);
+            WsFile file = new WsFile("calical.rvwj", wsConfigs);
+            ApiRequest ApiRequest = new NoConfigApiRequest(file, this.SupportType, this.PrinterModel, this.ConfigPresetName);
+
+            return MakeRequest("POST", "ProvideFile", ApiRequest).Result;
         }
-        public String GetProgress(String uniqueID)
+        public String GetProgress(String TaskId)
         {
-            FormData formData = new FormData(uniqueID);
-            String tempProgress = makeRequest("POST", "GetProgress", formData);
-            int i = 0;
-            bool isInteger = Int32.TryParse(tempProgress, out i);
-            return isInteger ? tempProgress : "2";
+            ApiRequest ApiRequest = new TaskApiRequest(TaskId);
+
+            String tempProgress = MakeRequest("POST", "GetProgress", ApiRequest).Result;
+            return tempProgress;
         }
-        public String GetPrintingInformation(String uniqueID)
+        public String GetPrintingInformation(String TaskId)
         {
-            FormData formData = new FormData(uniqueID);
-            return makeRequest("POST", "GetPrintingInformation", formData);
+            ApiRequest ApiRequest = new TaskApiRequest(TaskId);
+            return MakeRequest("POST", "GetPrintingInformation", ApiRequest).Result;
         }
-        public void Downloadfile(String uniqueID)
+        public void Downloadfile(String TaskId)
         {
-            FormData formData = new FormData(uniqueID);
-            String progress = GetProgress(uniqueID);
+            String progress = GetProgress(TaskId);
 
             while (progress != "1" && progress != "-1" && !string.IsNullOrEmpty(progress) && progress != "2" )
             {
-                progress = GetProgress(uniqueID);
+                progress = GetProgress(TaskId);
                 Console.WriteLine(progress);
             }
-            if( progress == "-1")
+            if(progress == "1")
+            {
+                var result = MakeRequest("POST", "DownloadFile?taskid=" + TaskId, new ApiRequest(), true).Result;
+            } else if ( progress == "-1")
             {
                 Console.WriteLine("Slicing file failed ... ");
-            } else if ( progress == "1" )
-            {
-                makeRequest("POST", "DownloadFile", formData);
-            } else if (string.IsNullOrEmpty(progress))
+            }
+            else if (string.IsNullOrEmpty(progress))
             {
                 Console.WriteLine("Progress is Empty ... ");
             } else
@@ -92,50 +101,68 @@ namespace
         // ************************************************************************************* //
         // ***************************** SUPPORT FUNCTIONS ************************************* //
         // ************************************************************************************* //
-        public IRestResponse requestNewToken()
+        public ApiSettings getApiSettings(String currentFolder)
         {
+            JToken appSettings = JToken.Parse(File.ReadAllText(currentFolder + "appsettings.json"));
+            return ApiSettings = JsonConvert.DeserializeObject<ApiSettings>(JsonConvert.SerializeObject(appSettings["TestApiSettings"]));
+        }
 
-            var client = new RestClient(this.AuthServerUrl);
-            var request = new RestRequest(Method.POST);
-            request.AddHeader("Postman-Token", "b45b53d9-0b63-480f-a0b6-46440ed4521b");
-            request.AddHeader("cache-control", "no-cache");
-            request.AddHeader("content-type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW");
-            request.AddParameter("multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", 
-                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
-                $"Content-Disposition: form-data; name=\"grant_type\"\r\n\r\nclient_credentials\r\n" +
-                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
-                $"Content-Disposition: form-data; name=\"client_id\"\r\n\r\n{this.ClientId}\r\n" +
-                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
-                $"Content-Disposition: form-data; name=\"client_secret\"\r\n\r\n{this.ClientSecret}\r\n" +
-                $"------WebKitFormBoundary7MA4YWxkTrZu0gW\r\n" +
-                $"Content-Disposition: form-data; name=\"resource\"\r\n\r\nhttps://api.createitreal.com/\r\n" +
-                $"------WebKitFormBoundary7MA4YWxkTrZu0gW--", ParameterType.RequestBody);
-            IRestResponse response = client.Execute(request);
-            Console.WriteLine("*************************************************************************");
-            JObject json = JObject.Parse(response.Content);
+        public async Task<String> requestNewToken()
+        {
+            using (var client = new HttpClient())
+            {
 
-            if (json.TryGetValue("access_token", out JToken access_token)) {
-                Console.WriteLine("Token successfully saved ... ");
+                MultipartFormDataContent multipart = new MultipartFormDataContent();
+
+                StringContent grant_type = new StringContent("client_credentials");
+                StringContent client_id = new StringContent(this.ApiSettings.ClientId);
+                StringContent client_secret = new StringContent(this.ApiSettings.ClientSecret);
+                StringContent resource = new StringContent("https://api.createitreal.com");
+
+                multipart.Add(grant_type, "grant_type");
+                multipart.Add(client_id, "client_id");
+                multipart.Add(client_secret, "client_secret");
+                multipart.Add(resource, "resource");
+
+                HttpResponseMessage result = new HttpResponseMessage();
+
+                try
+                {
+                        result = client.PostAsync(this.ApiSettings.AuthServerUrl, multipart).Result;
+                }
+                catch (HttpRequestException e)
+                {
+                    Console.WriteLine("Error while fetching token ... ");
+                    throw e;
+                }
+
                 Console.WriteLine("*************************************************************************");
+                String finalresult = await result.Content.ReadAsStringAsync();
 
-                
-            } else {
-                throw new Exception("Error while fetching token... ");
+                    
+                if (!string.IsNullOrEmpty(JsonConvert.DeserializeObject<ApiJwtResponse>(finalresult).access_token))
+                {
+                    Console.WriteLine("Token successfully fetched ... ");
+                }
+                else
+                {
+                    throw new Exception("Token doesn't have an access_token property ... ");
+                }
+
+                return finalresult;
             }
-
-            return response;
 
         }
 
-        public String getToken()
+        public async Task<String> getToken(String currentFolder)
         {
             String tokenFile = "";
-            JObject json = new JObject();
+            ApiJwtResponse jwt = new ApiJwtResponse();
 
             try
             {
-                tokenFile = File.ReadAllText(this.CurrentFolder + "/token.json");
-                json = JObject.Parse(tokenFile);
+                tokenFile = File.ReadAllText(currentFolder + "/token.json");
+                jwt = JsonConvert.DeserializeObject<ApiJwtResponse>(tokenFile);
 
                 Console.WriteLine("*************************************************************************");
                 Console.WriteLine("Valid token file.");
@@ -147,15 +174,12 @@ namespace
                 Console.WriteLine("No token file found. requesting new token ...");
                 Console.WriteLine("*************************************************************************");
 
-                json = JObject.Parse(requestNewToken().Content);
-                File.WriteAllText(this.CurrentFolder + "/token.json", json.ToString());
+                File.WriteAllText(currentFolder + "/token.json", await requestNewToken());
             }
 
-            if (json.TryGetValue("access_token", out JToken access_token))
+            if (!string.IsNullOrEmpty(jwt.access_token))
             {
-
-
-                this.TokenExpiresOn = json["expires_on"].ToString();
+                this.TokenExpiresOn = jwt.expires_on;
                 DateTime foo = DateTime.UtcNow;
                 long unixTime = ((DateTimeOffset)foo).ToUnixTimeSeconds();
 
@@ -167,8 +191,8 @@ namespace
                     Console.WriteLine("Valid token file.");
                     Console.WriteLine("*************************************************************************");
 
-                    this.Token = json["access_token"].ToString();
-                    this.TokenExpiresOn = json["expires_on"].ToString();
+                    this.Token = jwt.access_token;
+                    this.TokenExpiresOn = jwt.expires_on;
 
                     return this.Token;
                 } else
@@ -177,9 +201,8 @@ namespace
                     Console.WriteLine("Available token no longer valid, requesting new token ... ");
                     Console.WriteLine("*************************************************************************");
 
-                    json = JObject.Parse(requestNewToken().Content);
-                    File.WriteAllText(this.CurrentFolder + "/token.json", json.ToString());
-                    this.Token = json["access_token"].ToString();
+                    File.WriteAllText(currentFolder + "/token.json", await requestNewToken());
+                    this.Token = jwt.access_token;
 
                     return this.Token;
                 }
@@ -188,16 +211,11 @@ namespace
                 Console.WriteLine("*************************************************************************");
                 Console.WriteLine("Token file doesn't contain token, requesting new token ... ");
                 Console.WriteLine("*************************************************************************");
-
-                String newToken = requestNewToken().Content;
-                json = JObject.Parse(newToken);
-                File.WriteAllText(this.CurrentFolder + "/token.json", newToken);
-                Console.WriteLine("TOKEN    ::::: " + json.ToString());
-                return json.ToString();
+                String newToken = await requestNewToken();
+                File.WriteAllText(currentFolder + "/token.json", newToken);
+                Console.WriteLine("TOKEN    ::::: " + newToken);
+                return newToken;
             }
-
-
-             
         }
 
         private String readHttpResponse(HttpWebResponse response)
@@ -208,19 +226,18 @@ namespace
             return responseReader.ReadToEnd();
         }
 
-        private String logResponse(HttpWebResponse response, String serviceCall)
+        private async void logResponse(HttpResponseMessage response, String serviceCall , bool isDownload)
         {
-            String RESPONSE = this.readHttpResponse(response);
+
             Console.WriteLine();
             Console.WriteLine("*************************************************************************");
             Console.WriteLine("SERVICECALL                  :::: " + serviceCall);
             
             Console.WriteLine();
-            Console.WriteLine("METHOD                       :::: " + response.Method);
+            Console.WriteLine("METHOD                       :::: " + response.RequestMessage.Method);
             Console.WriteLine("REQUEST_STATUS_CODE          :::: " + response.StatusCode);
-            Console.WriteLine("REQUEST_STATUS_DESCRIPTION   :::: " + "" + response.StatusDescription);
 
-            if ( serviceCall == "DownloadFile"  && HttpStatusCode.OK == response.StatusCode )
+            if ( isDownload  && HttpStatusCode.OK == response.StatusCode )
             {
                 Console.WriteLine("--------------------");
                 Console.WriteLine("RESPONSE                 :::: " + " Please check the following folder for the downloaded FCode file: ");
@@ -230,13 +247,12 @@ namespace
             }
             else
             {
-                Console.WriteLine("RESPONSE                     :::: " + RESPONSE);
+                Console.WriteLine("RESPONSE                     :::: " + await response.Content.ReadAsStringAsync());
             }
 
             Console.WriteLine("*************************************************************************");
             Console.WriteLine();
 
-            return RESPONSE;
         }
 
         private void SaveFile(String response, String fileName, String fileExtention)
@@ -255,140 +271,71 @@ namespace
             {
                 throw new Exception("ERROR WHILE SAVING FILE TO FILESYSTEM", ex);
             }
-
         }
 
         // ************************************************************************************* //
         //This function is used by all the API Functions to call the API 
         // ************************************************************************************* //
 
-        public String makeRequest(String method, String serviceCall, FormData formData)
+        public async Task<String> MakeRequest (String method, String serviceCall, ApiRequest ApiRequest, bool isDownload = false)
         {
-
-            String fileUrl = ( string.IsNullOrEmpty(this.FileFolder) ? this.AssetsFolder : this.FileFolder  ) + this.FileToSlice;
-            String filename = Path.GetFileNameWithoutExtension(this.FileToSlice);
-            String fileExtension = Path.GetExtension(this.FileToSlice);
-
-            //Slicing configs
-            String supportType = formData.SupportType;
-            String printerModel = formData.PrinterModel;
-            String configPresetName = formData.ConfigPresetName;
-            //Used if a custom configurations file is provided which is rare because we usually use the presets and leave this one empty.
-            String configFile = Path.GetFileName(formData.ConfigFile);
-            //The uniqueID of the slicing process started by ProvideFile
-            String uniqueID = formData.UniqueID;
-            //Response variable
-            
-
-
-            if (serviceCall == "ProvideFile" && fileExtension != ".rvwj")
+            using (HttpClient client = new HttpClient())
             {
-                throw new Exception("  ------------- THE FILE YOU PROVIDED HAS THE WRONG EXTENSION  ------------- ");
-            }
-
-            string boundaryString = String.Format("----------{0:N}", Guid.NewGuid());
-            string contentType = "multipart/form-data; boundary=" + boundaryString;
-
-            // Create an http request to the API endpoint 
-
-
-            //******************************************************************************************//
-            //****************************** HTTP REQUEST HEADERS - START ******************************//
-            //******************************************************************************************//
-
-            HttpWebRequest requestToServerEndpoint = (HttpWebRequest)WebRequest.Create(this.ApiUrl + "/" + serviceCall);
-
-            requestToServerEndpoint.Method = WebRequestMethods.Http.Post;
-            requestToServerEndpoint.ContentType = contentType;
-            requestToServerEndpoint.KeepAlive = true;
-            requestToServerEndpoint.Headers["Ocp-Apim-Subscription-Key"] = this.ApiKey;
-            requestToServerEndpoint.Headers["Authorization"] = "Bearer " + this.Token;
-
-            //******************************************************************************************//
-            //****************************** HTTP REQUEST HEADERS - END ********************************//
-            //******************************************************************************************//
-
-            // Use a MemoryStream to form the post data request,
-            // so that we can get the content-length attribute.
-            MemoryStream postDataStream = new MemoryStream();
-            StreamWriter postDataWriter = new StreamWriter(postDataStream);
-
-            //******************************************************************************************//
-            //****************************** HTTP REQUEST BODY - START *********************************//
-            //******************************************************************************************//
-
-            postDataWriter.Write("\r\n--" + boundaryString + "\r\n");
-
-
-            if (serviceCall == "ProvideFile")
-            {
-                postDataWriter.Write("Content-Disposition: form-data; name=\"" + "file" + "\"; filename=\"" + fileUrl + "\"\r\nContent-Type: false\r\n\r\n\r\n");
-                postDataWriter.Flush();
-
-                // Read the file
-                FileStream fileStream = new FileStream(fileUrl, FileMode.Open, FileAccess.Read);
-                byte[] buffer = new byte[1024];
-                int bytesRead = 0;
-                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) != 0)
+                String FinalResponse = ""; 
+                try
                 {
-                    postDataStream.Write(buffer, 0, bytesRead);
-                }
-                fileStream.Close();
+                    string json = JsonConvert.SerializeObject(ApiRequest, Formatting.Indented);
 
+                    //Authentication & Authorization
+                    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", this.ApiSettings.ApiKey);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", this.Token);
 
-                postDataWriter.Write("Content-Disposition: form-data; name=\"supportType\"\r\n\r\n" + formData.SupportType + "\r\n");
-                postDataWriter.Write("Content-Disposition: form-data; name=\"printerModel\"\r\n\r\n" + formData.PrinterModel + "\r\n");
-                postDataWriter.Write("Content-Disposition: form-data; name=\"configPresetName\"\r\n\r\n" + formData.ConfigPresetName + "\r\n");
-                postDataWriter.Write("Content-Disposition: form-data; name=\"configFile\"; filename=\"" + Path.GetFileName(formData.ConfigFile) + "\"\r\nContent-Type: false\r\n\r\n");
+                    //Making the request
+                    var result = client.PostAsync(this.ApiSettings.ApiUrl + serviceCall, new StringContent(json, Encoding.UTF8, "application/json")).Result;
+                    result.EnsureSuccessStatusCode();
+                    //Reading the response as a string
+                    var response = await result.Content.ReadAsStringAsync();
 
-            }
-            else
-            {
-                postDataWriter.Write("Content-Disposition: form-data; name=\"uniqueID\"\r\n\r\n" + formData.UniqueID);
-            }
-
-            postDataWriter.Write("\r\n--" + boundaryString + "--\r\n");
-            postDataWriter.Flush();
-
-
-            //******************************************************************************************//
-            //****************************** HTTP REQUEST BODY - END ***********************************//
-            //******************************************************************************************//
-
-            // Set the http request body content length
-            requestToServerEndpoint.ContentLength = postDataStream.Length;
-
-            // Dump the post data from the memory stream to the request stream
-            using (Stream s = requestToServerEndpoint.GetRequestStream())
-            {
-                postDataStream.WriteTo(s);
-            }
-            postDataStream.Close();
-
-            try
-            {
-                HttpWebResponse response = (HttpWebResponse)requestToServerEndpoint.GetResponse();
-                if (HttpStatusCode.OK == response.StatusCode)
-                {
-                    
-
-                    if (serviceCall == "DownloadFile")
+                    //Serializing the response depeding on which endpoint was called
+                    if (!isDownload)
                     {
-                        SaveFile(this.readHttpResponse(response), filename, fileExtension);
+                        if (serviceCall == "ProvideFile")
+                        {
+                            TaskIdResponse responseObject = JsonConvert.DeserializeObject<TaskIdResponse>(response);
+                            FinalResponse = responseObject.Result.TaskId;
+                        }
+                        else if (serviceCall == "GetProgress")
+                        {
+                            ProgressResponse responseObject = JsonConvert.DeserializeObject<ProgressResponse>(response);
+                            FinalResponse = responseObject.Result.Progress;
+                        }
+                        else if (serviceCall == "GetPrintingInformation")
+                        {
+                            PrintingInformationResponse responseObject = JsonConvert.DeserializeObject<PrintingInformationResponse>(response);
+                            FinalResponse = JsonConvert.SerializeObject(responseObject.Result);
+                        } else
+                        {
+                            TaskIdResponse responseObject = JsonConvert.DeserializeObject<TaskIdResponse>(response);
+                            FinalResponse = responseObject.Result.TaskId;
+                        }
+
                     }
-                    return this.logResponse(response, serviceCall);
+                    else
+                    {
+                        SaveFile(response, Path.GetFileNameWithoutExtension(this.FileToSlice), ".fcode");
+                        FinalResponse = response;
+                    }
+
+                    //Logging the results of the request
+                    this.logResponse(result, serviceCall, isDownload);
+
+                    return FinalResponse;
                 }
-            }
-            catch (WebException e)
-            {
-                using (WebResponse response = e.Response)
+                catch (Exception e)
                 {
-                    HttpWebResponse httpResponse = (HttpWebResponse)response;
-                    return this.logResponse(httpResponse, serviceCall);
-                }
-                
+                    throw e;
+                }   
             }
-            return "NO RESPONSE";
         }
     }
 }
