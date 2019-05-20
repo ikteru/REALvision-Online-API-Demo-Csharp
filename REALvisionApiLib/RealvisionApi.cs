@@ -104,7 +104,7 @@ namespace
         public ApiSettings getApiSettings(String currentFolder)
         {
             JToken appSettings = JToken.Parse(File.ReadAllText(currentFolder + "appsettings.json"));
-            return ApiSettings = JsonConvert.DeserializeObject<ApiSettings>(JsonConvert.SerializeObject(appSettings["TestApiSettings"]));
+            return ApiSettings = JsonConvert.DeserializeObject<ApiSettings>(JsonConvert.SerializeObject(appSettings["ApiSettings"]));
         }
 
         public async Task<String> requestNewToken()
