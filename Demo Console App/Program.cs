@@ -32,7 +32,7 @@ namespace
 
 
             ////Specify the name of the file you want to slice with it's extension.
-            realvisionInstance.FileToSlice = "calicat.rvwj";
+            realvisionInstance.FileToSlice = "cubetest.rvwj";
 
             //Specify where the file is stored
             //If it's stored in the Assets folder, use the Assets folder property
@@ -52,6 +52,7 @@ namespace
             realvisionInstance.ConfigPresetName = "Recommended";
 
             String TaskId = realvisionInstance.ProvideFile();
+
             // ********************************************************************************//
             //  To call https://realvisiononline.azure-api.net/GetProgress
             // ********************************************************************************//

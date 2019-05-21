@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using REALvisionApiLib.Models;
-using RestSharp;
 using System;
 using System.IO;
 using System.Net;
